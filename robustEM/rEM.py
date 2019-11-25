@@ -13,229 +13,349 @@ import pandas as pd
 
 class Result(object):
     
+    ''' 
+        Class for recording iteration results.
+    '''
+    
     pass
+
 
 
 class robustEM():
     
+    '''
+        Class for robust EM clustering algorithm.
+        
+    Args:
+        gamma: float. Non-negative regularization added to the diagonal of covariance.
+        eps: float. The convergence threshold.
+    '''
     
-    def __init__(self, X):
+    def __init__(self, gamma= 1e-4, eps= 1e-3):
         
-        self.X= X
-        self.dim= X.shape[1]
-        self.n= self.X.shape[0]
-        self.gamma= 1e-4
-        self.eps= 1e-6
-        self.beta_update= True
-        self.t= 0
+        self.gamma_= gamma
+        self.eps_= eps
+        self.smoothing_parameter_= 1e-256
         
-        self.beta= 1
-        self.c= self.n        
-        self.pi= np.ones(self.c)/ self.c
-        self.mus= self.X.copy()
-        self.cov_idx= int(np.ceil(np.sqrt(self.c)))
+        self.result_list_= []
         
-        self.result_list= []
+    
+    def fit(self, X):
         
+        ''' 
+            Function for training model with data X by using robust EM algorithm.
+            Refer 'Robust EM clustering algorithm' section in the paper page 4 for more details.
+        
+        Args:
+            X: numpy array
+            
+        '''
+        
+        if X.ndim== 1: self.X_= X.reshape(-1, 1)
+        else: self.X_= X
+        
+        self.dim_= self.X_.shape[1]
+        self.n_= self.X_.shape[0]
+        self.c_= self.n_
+        self.pi_= np.ones(self.c_)/ self.c_
+        self.means_= self.X_.copy()
+        self.cov_idx_= int(np.ceil(np.sqrt(self.c_)))
+        self.beta_= 1
+        self.beta_update_= True
+        self.t_= 0
+        self.entropy_= (self.pi_*np.log(self.pi_)).sum()
+
+        self.initialize_covmat()
+        self.z_= self.predict_proba(self.X_)
+
+        self.before_time_= time()        
+        self.get_iter_info()
+        
+        self.t_+= 1
+        self.num_update_c_= 0
+        
+        while True:
+                        
+            self.means_= self.update_means()
+            self.new_pi_= self.update_pi()
+            self.update_beta()
+            self.pi_= self.new_pi_
+            self.new_c_= self.update_c()
+            
+            if self.new_c_== self.c_: self.num_update_c_+= 1
+            
+            if self.t_>= 60 and self.num_update_c_== 60: 
+                
+                self.beta_= 0
+                self.beta_update_= False
+                
+            self.c_= self.new_c_
+            self.update_cov()
+            self.z_= self.predict_proba(self.X_)
+            self.new_means_= self.update_means()
+            
+            if self.check_convergence()< self.eps_: 
+                
+                self.means_= self.new_means_
+                break
+            
+            self.means_= self.new_means_
+            
+            self.get_iter_info()
+            
+            self.t_+= 1
+            
+        self.get_iter_info()
+
     
     def initialize_covmat(self):
         
-        D_mat= np.sqrt(np.sum((self.X[None, :] - self.X[:, None])**2, -1))
+        ''' 
+            Covariance matrix initialize function.
+        '''
         
-        covs= np.apply_along_axis(func1d= lambda x: self._initialize_covmat_1d(x),
-                                  axis= 1,
-                                  arr= D_mat)
+        D_mat= np.sqrt(np.sum((self.X_[None, :] - self.X_[:, None])**2, -1))
         
-        self.covs= covs
+        self.covs_= np.apply_along_axis(func1d= lambda x: self._initialize_covmat_1d(x),
+                                        axis= 1,
+                                        arr= D_mat)
         
         D_mat_reshape= D_mat.reshape(-1, 1)
         d_min= D_mat_reshape[D_mat_reshape> 0].min()
         
-        self.Q= d_min* np.identity(self.dim)
+        self.Q_= d_min* np.identity(self.dim_)
     
     
     def _initialize_covmat_1d(self, d_k):
         
+        '''
+            Function for self.initialize_covmat() that uses np.apply_along_axis().
+            This function is refered term 27 and 28 in the paper.
+            
+        Args:
+            d_k: numpy 1d array
+        '''
         d_k= d_k.copy()
         d_k.sort()
         d_k= d_k[d_k!= 0]
         
-        return (d_k[self.cov_idx]* np.identity(self.dim))
+        return ((d_k[self.cov_idx_]** 2)* np.identity(self.dim_))
         
     
     def predict_proba(self, X):
         
-        likelihood= np.zeros((self.n, self.c))
-        
-        for i in range(self.c):
+        '''
+            Function to calculate posterior probability of each component given the data.
             
-            dist= multivariate_normal(mean= self.mus[i],
-                                      cov= self.covs[i])
+        Args:
+            X: numpy array
+        '''
+        
+        likelihood= np.zeros((self.n_, self.c_))
+        
+        for i in range(self.c_):
+            
+            dist= multivariate_normal(mean= self.means_[i],
+                                      cov= self.covs_[i])
             likelihood[:, i]= dist.pdf(X)
         
-        numerator= likelihood* self.pi
+        numerator= likelihood* self.pi_
         denominator= numerator.sum(axis= 1)[:, np.newaxis]
         z= numerator/ denominator
         
         return z
 
 
-    def update_mu(self):
+    def update_means(self):
         
-        mu_list= []
-        for i in range(self.c):
-            mu_list.append((self.X* self.z[:, i].reshape(-1, 1)).sum(axis= 0)/ self.z[:, i].sum())
+        '''
+            Mean vectors update step.
+            This function is refered term 25 in the paper.
+        '''
+        
+        means_list= []
+        for i in range(self.c_):
+            means_list.append((self.X_* self.z_[:, i].reshape(-1, 1)).sum(axis= 0)/ self.z_[:, i].sum())
             
-        return np.array(mu_list)
+        return np.array(means_list)
         
 
     def update_pi(self):
         
-        self.pi_EM= self.z.sum(axis= 0)/ self.n
-        self.entropy= (self.pi*np.log(self.pi)).sum()
+        '''
+            Mixing proportions update step.
+            This function is refered term 13 in the paper.
+        '''
         
-        return self.pi_EM+ self.beta* self.pi*(np.log(self.pi)- self.entropy)
+        self.pi_EM_= self.z_.sum(axis= 0)/ self.n_
+        self.entropy_= (self.pi_*np.log(self.pi_)).sum()
+        
+        return self.pi_EM_+ self.beta_* self.pi_*(np.log(self.pi_)- self.entropy_)
         
         
     def update_beta(self):
         
-        if self.beta_update:
-            self.beta= np.min([self._left_term_of_beta_(), self._right_term_of_beta_()])
+        '''
+            Beta update step.
+            This function is refered term 24 in the paper.
+        '''
+        
+        if self.beta_update_:
+            self.beta_= np.min([self._left_term_of_beta_(), self._right_term_of_beta_()])
     
         
     def _left_term_of_beta_(self):
         
-        power= np.trunc(self.dim/2- 1)
+        '''
+            Left term of beta update step.
+            This function is refered term 22 in the paper.
+        '''
+        
+        power= np.trunc(self.dim_/2- 1)
         
         eta= np.min([1, 0.5**(power)])
         
-        left_term= np.exp(-eta* self.n* np.abs(self.new_pi- self.pi)).sum()/ self.c
+        left_term= np.exp(-eta* self.n_* np.abs(self.new_pi_- self.pi_)).sum()/ self.c_
         
         return left_term
     
     
     def _right_term_of_beta_(self):
         
-        pi_EM= np.max(self.pi_EM)
-        pi_old= np.max(self.pi)
+        '''
+            Right term of beta update step.
+            This function is refered term 23 in the paper.
+        '''
         
-        right_term= (1- pi_EM)/ (-pi_old* self.entropy)
+        pi_EM= np.max(self.pi_EM_)
+        pi_old= np.max(self.pi_)
+        
+        right_term= (1- pi_EM)/ (-pi_old* self.entropy_)
         
         return right_term
     
     
     def update_c(self):
         
-        idx_bool= self.pi>= 1/ self.n
+        '''
+            Update the number of components.
+            This function is refered term 14, 15 and 16 in the paper.
+        '''
+        
+        idx_bool= self.pi_>= 1/ self.n_
         new_c= idx_bool.sum()
         
-        pi= self.pi[idx_bool]
-        self.pi= pi/ pi.sum()
+        pi= self.pi_[idx_bool]
+        self.pi_= pi/ pi.sum()
         
-        z= self.z[:, idx_bool]
-        self.z= z/ z.sum(axis= 1).reshape(-1, 1)
+        z= self.z_[:, idx_bool]
+        self.z_= z/ z.sum(axis= 1).reshape(-1, 1)
         
-        self.mus= self.mus[idx_bool, :]
+        self.means_= self.means_[idx_bool, :]
         
         return new_c
         
     
     def update_cov(self):
         
+        '''
+            Covariance matrix update step.
+            This function is refered term 26 in the paper.
+        '''
+        
         cov_list= []
         
-        for i in range(self.new_c):
+        for i in range(self.new_c_):
             
-            new_cov= np.cov((self.X- self.mus[i, :]).T, aweights= (self.z[:, i]/ self.z[:, i].sum()))
-            new_cov= (1- self.gamma)* new_cov- self.gamma* self.Q
+            new_cov= np.cov((self.X_- self.means_[i, :]).T, 
+                            aweights= (self.z_[:, i]/ self.z_[:, i].sum()))
+            new_cov= (1- self.gamma_)* new_cov- self.gamma_* self.Q_
             cov_list.append(new_cov)
             
-        self.covs= np.array(cov_list)
+        self.covs_= np.array(cov_list)
         
 
-    def calculate_diff(self):
+    def check_convergence(self):
         
-        return np.max(np.sqrt(np.sum((self.new_mus- self.mus)** 2, axis= 1)))
+        '''
+            Function for checking whether algorithm converge or not.
+        '''
         
-
-    def fit(self):
+        return np.max(np.sqrt(np.sum((self.new_means_- self.means_)** 2, axis= 1)))
         
-        self.initialize_covmat()
-        self.z= self.predict_proba(self.X)
-
-        self.before_time= time()        
-        self.get_iter_info()
-        
-        self.t+= 1
-        self.num_update_c= 0
-        
-        while True:
-                        
-            self.mus= self.update_mu()
-            self.new_pi= self.update_pi()
-            self.update_beta()
-            self.pi= self.new_pi
-            self.new_c= self.update_c()
-            
-            if self.new_c== self.c: self.num_update_c+= 1
-            
-            if self.t>= 60 and self.num_update_c== 60: 
-                
-                self.beta= 0
-                self.beta_update= False
-                
-            self.c= self.new_c
-            self.update_cov()
-            self.z= self.predict_proba(self.X)
-            self.new_mus= self.update_mu()
-            
-            if self.calculate_diff()< self.eps: 
-                
-                self.mus= self.new_mus
-                break
-            
-            self.mus= self.new_mus
-            
-            self.get_iter_info()
-            
-            self.t+= 1
-            
-        self.get_iter_info()
-            
             
     def get_iter_info(self):
         
-        result= Result()
-        result.mus= self.mus
-        result.covs= self.covs
-        result.iteration= self.t
-        result.c= self.c
-        result.time= time()- self.before_time
-        self.before_time= time()
+        '''
+            Record function that saves useful information in each step for visualization and 
+            objective function.
+        '''
         
-        self.result_list.append(result)
+        result= Result()
+        result.means_= self.means_
+        result.covs_= self.covs_
+        result.iteration_= self.t_
+        result.c_= self.c_
+        result.time_= time()- self.before_time_
+        result.mix_prob_= self.pi_
+        result.beta_= self.beta_
+        result.entropy_= self.entropy_
+        result.objective_function_= self.objective_function()
+        
+        self.before_time_= time()
+        
+        self.result_list_.append(result)
         
         
     def save_record(self, save_option= False, filename= None):
         
-        t, c, time= [], [], []
+        '''
+            Function that makes pandas dataframe with each iteration information.
+        '''
         
-        for result in self.result_list:
-            t.append(result.iteration)
-            c.append(result.c)
-            time.append(result.time)
-            
+        t, c, time, objective_function= [], [], [], []
+        
+        for result in self.result_list_:
+            t.append(result.iteration_)
+            c.append(result.c_)
+            time.append(result.time_)
+            objective_function.append(result.objective_function_)
+        
         df= {}
         df['iteration']= t
         df['c']= c
         df['time']= time
-        df= pd.DataFrame(df, columns= ['iteration', 'c', 'time'])
+        df['objective_function']= objective_function
+        df= pd.DataFrame(df, columns= ['iteration', 'c', 'time', 'objective_function'])
         
         if save_option:
             df.to_csv('../result/%s.csv'%filename, index= False, sep= ',')
         
         else:
             return df
+        
+        
+    def objective_function(self):
+        
+        '''
+            Calculate objective function, negative log likelihood function with iteration information.
+        '''
+        
+        likelihood= np.zeros((self.n_, self.c_))
+                        
+        for i in range(self.c_):
+            
+            likelihood[:, i]= multivariate_normal(self.means_[i], self.covs_[i]).pdf(self.X_)
+            
+        likelihood= likelihood* self.pi_
+        resposibility= self.predict_proba(self.X_)
+        
+        log_likelihood= np.sum(np.log(likelihood+ self.smoothing_parameter_)* resposibility)\
+                        + self.beta_* self.entropy_* self.n_
+        
+        return log_likelihood
+    
+
         
 if __name__== '__main__':
         

@@ -10,21 +10,42 @@ import numpy as np
 import matplotlib.transforms as transforms
 
 
-def plot_sample(ax, X):
+def scatter_sample(ax, X, title):
+    
+    '''
+        Scatter data sets in 2 dimention vector space. 
         
-#    for i, s in enumerate(sets):
-        
+    Args: 
+        ax: matplotlib.axes.Axes
+        X: numpy array
+        title: string
+    '''
+    
+    ax.set_title(title)        
     ax.scatter(X[:, 0], X[:, 1], marker= '.', c= 'g', s= 10)
+    ax.set_xlim(np.min(X[:, 0])- 1, np.max(X[:, 0])+ 1)
+    ax.set_ylim(np.min(X[:, 1])- 1, np.max(X[:, 1])+ 1)
                   
         
-def make_ellipses(ax, mean, cov, center, n_std):
+def make_ellipses(ax, mean, cov, n_std, edgecolor):
+    
+    '''
+        Plot ellipses with mean vector and covariance matrix information.
+        
+    Args:
+        ax: matplotlib.axes.Axes
+        mean: numpy array
+        cov: numpy array
+        n_std: integer or float
+        edgecolor: string
+    '''
     
     pearson = cov[0, 1]/ np.sqrt(cov[0, 0]* cov[1, 1])
     ell_radius_x= np.sqrt(1+ pearson)
     ell_radius_y= np.sqrt(1- pearson)
     
     ellipse= mpl.patches.Ellipse((0, 0), ell_radius_x* 2, ell_radius_y* 2, facecolor= 'none',
-                                 edgecolor= 'r', lw= 1)
+                                 edgecolor= edgecolor, lw= 1)
     
     scale_x= np.sqrt(cov[0, 0])* n_std
     scale_y= np.sqrt(cov[1, 1])* n_std
@@ -36,15 +57,27 @@ def make_ellipses(ax, mean, cov, center, n_std):
     ax.add_artist(ellipse)
     ax.set_aspect('equal', 'datalim')
     
-    if center:
-        ax.scatter(mean[0], mean[1], c= 'black', marker= '*')
+    ax.scatter(mean[0], mean[1], c= 'black', marker= '*')
     
     
-def get_figure(ax, sets, means, covs, center= False, n_std= 3):
+def get_figure(ax, X, means, covs, title, edgecolor, n_std= 3):
     
-    plot_sample(ax, sets)
+    '''
+        Function for convenient visualization.
+        
+    Args:
+        ax: matplotlib.axes.Axes
+        X: numpy array
+        mean: numpy array
+        cov: numpy array
+        title: string
+        edgecolor: string
+        n_std: integer or float
+    '''
     
+    scatter_sample(ax, X, title)
+        
     for mean, cov in zip(means, covs):
-        make_ellipses(ax, mean, cov, center, n_std)
+        make_ellipses(ax, mean, cov, n_std, edgecolor)
         
     
