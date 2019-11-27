@@ -22,7 +22,7 @@ def histogram(ax, X, title):
 
     
     ax.set_title(title)
-    n, x, _= ax.hist(X, bins= int(X.shape[0]/ 50), color= 'g', histtype= u'barstacked', density= False)
+    ax.hist(X, bins= int(X.shape[0]/ 50), color= 'g', histtype= u'barstacked', density= False)
     ax.set_xlim(np.min(X)- 1, np.max(X)+ 1)
         
 
@@ -53,7 +53,7 @@ def curve(ax, X, means, covs, mix_prob, color, label):
         
     prob= (prob* mix_prob).sum(axis= 1)
     
-    ax.plot(X_range, prob, c= color, linewidth= 1, label= label)
+    ax.plot(X_range, prob, c= color, linewidth= 1.5, label= label)
     
 
 def get_figure(ax, X, means, covs, mix_prob, result, title):
@@ -74,24 +74,41 @@ def get_figure(ax, X, means, covs, mix_prob, result, title):
     ax.set_title(title)
 
     curve(ax, X, means, covs, mix_prob, 'b', label= 'Real Model')
-    curve(ax, X, result.means_, np.sqrt(result.covs_), result.mix_prob_, 'r', label= 'Estimate Model')
+    curve(ax, X, result.means_, np.sqrt(result.covs_), result.mix_prob_, \
+          'tab:red', label= 'Estimate Model')
     
     ax.legend(loc= 'upper right')
         
         
-def objective_function_plot(ax, results):
+def objective_function_plot(ax, results, color):
     
     '''
-        Function that plots objective function each step.
+        Function that plots objective function at each step.
         
     Args:
-        ax: ax: matplotlib.axes.Axes
+        ax: matplotlib.axes.Axes
         results: list of class for recording iteration results in robustEM.rEM
     '''
     
     x= np.arange(len(results))
     obj= [result.objective_function_ for result in results]
     
-    ax.plot(x, obj, c= 'b', linewidth= 1)
+    ax.plot(x, obj, c= color, linewidth= 1.5)
     ax.set_xlabel('iteration')
     ax.set_title('Objective Function per Iteration')
+    
+    
+def time_cost_plot(ax, df, title):
+    
+    '''
+        Function that plots computation time cost at each step.
+        
+    Args:
+        ax: matplotlib.axes.Axes
+        df: pandas DataFrame
+    '''
+    
+    ax.plot(np.arange(df.shape[0])[1:], df['time'][1:], 'tab:red')
+    ax.set_xlabel('Iteration')
+    ax.set_ylabel('Time(sec)')
+    ax.set_title(title, fontsize= 10)

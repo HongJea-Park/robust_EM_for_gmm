@@ -21,13 +21,13 @@ def scatter_sample(ax, X, title):
         title: string
     '''
     
-    ax.set_title(title)        
+    ax.set_title(title, fontsize= 10) 
     ax.scatter(X[:, 0], X[:, 1], marker= '.', c= 'g', s= 10)
-    ax.set_xlim(np.min(X[:, 0])- 1, np.max(X[:, 0])+ 1)
-    ax.set_ylim(np.min(X[:, 1])- 1, np.max(X[:, 1])+ 1)
+    ax.set_xlim(np.min(X[:, 0])- 2, np.max(X[:, 0])+ 2)
+    ax.set_ylim(np.min(X[:, 1])- 2, np.max(X[:, 1])+ 2)
                   
         
-def make_ellipses(ax, mean, cov, n_std, edgecolor):
+def make_ellipses(ax, mean, cov, edgecolor, n_std):
     
     '''
         Plot ellipses with mean vector and covariance matrix information.
@@ -60,7 +60,7 @@ def make_ellipses(ax, mean, cov, n_std, edgecolor):
     ax.scatter(mean[0], mean[1], c= 'black', marker= '*')
     
     
-def get_figure(ax, X, means, covs, title, edgecolor, n_std= 3):
+def get_figure(ax, means, covs, edgecolor, n_std= 3):
     
     '''
         Function for convenient visualization.
@@ -70,14 +70,11 @@ def get_figure(ax, X, means, covs, title, edgecolor, n_std= 3):
         X: numpy array
         mean: numpy array
         cov: numpy array
-        title: string
         edgecolor: string
         n_std: integer or float
     '''
-    
-    scatter_sample(ax, X, title)
-        
+            
     for mean, cov in zip(means, covs):
-        make_ellipses(ax, mean, cov, n_std, edgecolor)
+        make_ellipses(ax, mean, cov, edgecolor, n_std)
         
     

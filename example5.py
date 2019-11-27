@@ -12,6 +12,7 @@ from visualization import visualization_1d as vs1
 import matplotlib.pyplot as plt
 
 
+#Data Generate
 means= [[.0, .0], 
         [.0, .0], 
         [-1.5, 1.5], 
@@ -24,26 +25,29 @@ covs= [[[.01, .0], [.0, 1.25]],
        [[1., .0], [.0, .2]]]
 mix_prob= [.2, .2, .2, .2, .2]
 
-ex1= generator_multivariate_normal(means= means, 
+ex5= generator_multivariate_normal(means= means, 
                                    covs= covs,
                                    mix_prob= mix_prob)
 
-X= ex1.get_sample(1000)
+X= ex5.get_sample(1000)
+
 
 #Real
-means_real= ex1.means_
-covs_real= ex1.covs_
+means_real= ex5.means_
+covs_real= ex5.covs_
 
-#robustEM
+
+#robust EM
 rem= rEM.robustEM()
 rem.fit(X)
 
 results= rem.result_list_
-record= rem.save_record()
+record= rem.save_record(save_option= True, filename= 'example5')
+
 
 #visualization
 plt.figure(figsize= (12, 6))
-plt.subplots_adjust(wspace= .2, hspace= .5)
+plt.subplots_adjust(wspace= .3, hspace= .5)
 
 ax1, ax2, ax3, ax4, ax5, ax6= plt.subplot(231), plt.subplot(232), plt.subplot(233), \
                               plt.subplot(234), plt.subplot(235), plt.subplot(236)
@@ -55,6 +59,13 @@ idx_= [1, 5, 20, -1]
 
 for ax, idx in zip(ax_list, idx_):
     result= results[idx]
-    vs2.get_figure(ax, X, result.means_, result.covs_, 'Iteration: %s; C: %s'%(result.iteration_, result.c_), 'r')
-        
-vs1.objective_function_plot(ax6, results)
+    vs2.scatter_sample(ax, X, 'Iteration: %s; C: %s'%(result.iteration_, result.c_))
+    vs2.get_figure(ax, means_real, covs_real, 'b')
+    vs2.get_figure(ax, result.means_, result.covs_, 'tab:red')
+    ax.legend(handles= [plt.plot([], ls= '-', color= 'b')[0],
+                        plt.plot([], ls= '-', color= 'tab:red')[0]], \
+              labels= ['R', 'E'], loc= 'lower left', fontsize= 7)
+    
+vs1.objective_function_plot(ax6, results, 'darkorange')
+
+plt.savefig('../plot/example5.png', dpi= 300)

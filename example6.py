@@ -10,6 +10,7 @@ from robustEM import rEM
 from visualization import visualization_2d as vs2
 import matplotlib.pyplot as plt
 from sklearn.mixture import GaussianMixture
+import numpy as np
 
 means= [[.5, .5], 
         [2.5, .5], 
@@ -49,20 +50,23 @@ covs= [[[.1, .0], [.0, .1]],
 mix_prob= [1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16, \
            1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16]
 
-ex1= generator_multivariate_normal(means= means, 
+ex6= generator_multivariate_normal(means= means, 
                                    covs= covs,
                                    mix_prob= mix_prob)
 
-X= ex1.get_sample(800)
+X= ex6.get_sample(800)
 
-means_real= ex1.means_
-covs_real= ex1.covs_
+means_real= ex6.means_
+covs_real= ex6.covs_
 
 #Standard EM
-gmm= GaussianMixture(n_components= 16, covariance_type= 'full')
+init_idx= np.random.choice(np.arange(X.shape[0]), 16)
+means_init= X[init_idx, :]
+gmm= GaussianMixture(n_components= 16, means_init= means_init, max_iter= 1000, tol= 1e-10)
 gmm.fit(X)
 means_sklearn= gmm.means_
 covs_sklearn= gmm.covariances_
+iteration_sklearn= gmm.n_iter_
 
 #robustEM
 rem= rEM.robustEM()
@@ -79,11 +83,15 @@ ax1, ax2, ax3, ax4, ax5, ax6= plt.subplot(231), plt.subplot(232), plt.subplot(23
                               plt.subplot(234), plt.subplot(235), plt.subplot(236)
                               
 vs2.scatter_sample(ax1, X, 'Real Data and Real Gaussian Distribution')
-vs2.get_figure(ax2, X, means_sklearn, covs_sklearn, 'Standard EM with sklearn', 'b')
+vs2.scatter_sample(ax2, X, 'Standard EM with sklearn; Iteration: %s'%iteration_sklearn)
+vs2.get_figure(ax2, means_sklearn, covs_sklearn, 'b')
 
 ax_list= [ax3, ax4, ax5, ax6]
 idx_= [1, 5, 20, -1]
 
 for ax, idx in zip(ax_list, idx_):
     result= results[idx]
-    vs2.get_figure(ax, X, result.means_, result.covs_, 'Iteration: %s; C: %s'%(result.iteration_, result.c_), 'r')
+    vs2.scatter_sample(ax, X, 'Iteration: %s; C: %s'%(result.iteration_, result.c_))
+    vs2.get_figure(ax, result.means_, result.covs_, 'tab:red')
+
+plt.savefig('../plot/example6.png', dpi= 300)

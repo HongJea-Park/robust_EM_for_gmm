@@ -11,6 +11,7 @@ from visualization import visualization_2d as vs2
 import matplotlib.pyplot as plt
 
 
+#Data Generate
 means= [[-4, -4], [-4, -4], [2, 2], [-1, -6]]
 covs= [[[1, .5], [.5, 1]], 
        [[6, -2], [-2, 6]], 
@@ -18,25 +19,31 @@ covs= [[[1, .5], [.5, 1]],
        [[.125, .0], [.0, .125]]]
 mix_prob= [.3, .3, .3, .1]
 
-ex1= generator_multivariate_normal(means= means, 
+ex3= generator_multivariate_normal(means= means, 
                                    covs= covs,
                                    mix_prob= mix_prob)
 
-X= ex1.get_sample(1000)
+X= ex3.get_sample(1000)
+
 
 #Real
-means_real= ex1.means_
-covs_real= ex1.covs_
+means_real= ex3.means_
+covs_real= ex3.covs_
 
-fig, ax= plt.subplots(1, 1)
-vs2.get_figure(ax, X, means_real, covs_real, 'Real Data and Real Gaussian Distribution', 'b')
+#fig, ax= plt.subplots(1, 1)
+#vs2.scatter_sample(ax, X, 'Real Data and Real Gaussian Distribution')
+#vs2.get_figure(ax, means_real, covs_real, 'b')
+#
+#plt.savefig('../plot/example3_1.png', dpi= 300)
 
-#robustEM
+
+#robust EM
 rem= rEM.robustEM()
 rem.fit(X)
 
 results= rem.result_list_
 record= rem.save_record()
+
 
 #visualization
 plt.figure(figsize= (12, 6))
@@ -47,7 +54,15 @@ idx_= [0, 1, 10, 20, 30, -1]
 
 for ax, idx in zip(ax_list, idx_):
     result= results[idx]
-    vs2.get_figure(ax, X, result.means_, result.covs_, 'Iteration: %s; C: %s'%(result.iteration_, result.c_), 'r')
+    vs2.scatter_sample(ax, X, 'Iteration: %s; C: %s'%(result.iteration_, result.c_))
+    vs2.get_figure(ax, means_real, covs_real, 'b')
+    vs2.get_figure(ax, result.means_, result.covs_, 'tab:red')
+    ax.legend(handles= [plt.plot([], ls= '-', color= 'b')[0],
+                        plt.plot([], ls= '-', color= 'tab:red')[0]], \
+              labels= ['R', 'E'], loc= 'lower left', fontsize= 7)
+
+
+plt.savefig('../plot/example3_3.png', dpi= 300)
 
 
 #Experiments by generating 100 data sets with same parameter

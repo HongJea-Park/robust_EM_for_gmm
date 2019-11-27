@@ -10,26 +10,31 @@ from robustEM import rEM
 from visualization import visualization_1d as vs1
 import matplotlib.pyplot as plt
 
+
+#Data Generate
 means= [-11, 0, 13]
 covs= [2, 4, 3]
 mix_prob= [1/3, 1/3, 1/3]
 
-ex1= generator_univariate_normal(means= means, 
+ex4= generator_univariate_normal(means= means, 
                                  covs= covs,
                                  mix_prob= mix_prob)
 
-X= ex1.get_sample(1000)
+X= ex4.get_sample(1000)
+
 
 #Real
-means_real= ex1.means_
-covs_real= ex1.covs_
+means_real= ex4.means_
+covs_real= ex4.covs_
+
 
 #robustEM
 rem= rEM.robustEM()
 rem.fit(X)
 
 results= rem.result_list_
-record= rem.save_record()
+record= rem.save_record(save_option= True, filename= 'example4')
+
 
 #visualization
 plt.figure(figsize= (12, 6))
@@ -45,6 +50,12 @@ idx_= [1, 10, 20, -1]
 
 for ax, idx in zip(ax_list, idx_):
     result= results[idx]
-    vs1.get_figure(ax, X, means, covs, mix_prob, results[idx], 'Iteration: %s; C: %s'%(result.iteration_, result.c_))
+    vs1.get_figure(ax, X, means, covs, mix_prob, results[idx], \
+                   'Iteration: %s; C: %s'%(result.iteration_, result.c_))
+    ax.legend(handles= [plt.plot([], ls= '-', color= 'b')[0],
+                        plt.plot([], ls= '-', color= 'tab:red')[0]], \
+              labels= ['R', 'E'], loc= 'upper right', fontsize= 7)
 
-vs1.objective_function_plot(ax6, results)
+vs1.objective_function_plot(ax6, results, 'darkorange')
+
+plt.savefig('../plot/example4.png', dpi= 300)

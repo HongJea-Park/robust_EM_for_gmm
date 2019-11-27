@@ -27,8 +27,10 @@ class robustEM():
         Class for robust EM clustering algorithm.
         
     Args:
-        gamma: float. Non-negative regularization added to the diagonal of covariance.
+        gamma: float. Non-negative regularization added to the diagonal of covariance. 
+               This variable is equivalent to 'reg_covar' in sklearn.mixture.GaussianMixture.
         eps: float. The convergence threshold.
+             This variable is equivalent to 'tol' in sklearn.mixture.GaussianMixture.
     '''
     
     def __init__(self, gamma= 1e-4, eps= 1e-3):
@@ -155,6 +157,8 @@ class robustEM():
         
         for i in range(self.c_):
             
+            self.covs_[i]= self.check_positive_semidefinite(self.covs_[i])
+            
             dist= multivariate_normal(mean= self.means_[i],
                                       cov= self.covs_[i])
             likelihood[:, i]= dist.pdf(X)
@@ -164,6 +168,20 @@ class robustEM():
         z= numerator/ denominator
         
         return z
+    
+    
+    def predict(self, X):
+        
+        '''
+            Function to predict the labels for the data samples in X.
+            
+        Args:
+            X: numpy array
+        '''
+        
+        argmax= self.predict_proba(X)
+        
+        return argmax.argmax(axis= 1)
 
 
     def update_means(self):
@@ -282,6 +300,20 @@ class robustEM():
         '''
         
         return np.max(np.sqrt(np.sum((self.new_means_- self.means_)** 2, axis= 1)))
+    
+    
+    def check_positive_semidefinite(self, cov):
+        
+        '''
+            Function for preventing error that covariance matrix is not positive semi definite.
+        '''
+        
+        min_eig= np.min(np.linalg.eigvals(cov))
+        
+        if min_eig< 0:
+            cov-= 10* min_eig* np.eye(*cov.shape)
+            
+        return cov
         
             
     def get_iter_info(self):
@@ -330,9 +362,8 @@ class robustEM():
         
         if save_option:
             df.to_csv('../result/%s.csv'%filename, index= False, sep= ',')
-        
-        else:
-            return df
+
+        return df
         
         
     def objective_function(self):
