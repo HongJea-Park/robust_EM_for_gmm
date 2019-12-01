@@ -69,16 +69,16 @@ class generator_univariate_normal():
         
     Args:
         means: list
-        covs: list
+        stds: list
         mix_prob: list
     '''
 
     
-    def __init__(self, means, covs, mix_prob):
+    def __init__(self, means, stds, mix_prob):
         
         self.n_components_= len(means)
         self.means_= np.array(means)
-        self.covs_= np.array(covs)
+        self.stds_= np.array(stds)
         self.mix_prob_= mix_prob
         
     
@@ -99,7 +99,7 @@ class generator_univariate_normal():
         for n in range(0, self.n_components_):
             
             mean= self.means_[n]
-            cov= self.covs_[n]
+            std= self.stds_[n]
             
             if n!= self.n_components_- 1:
                 
@@ -110,7 +110,7 @@ class generator_univariate_normal():
                 
                 num_of_sample= size- sample_size
             
-            X_n= np.random.normal(loc= mean, scale= cov, size= num_of_sample)
+            X_n= np.random.normal(loc= mean, scale= std, size= num_of_sample)
             
             X= np.append(X, X_n)
             

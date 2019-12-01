@@ -26,7 +26,7 @@ def histogram(ax, X, title):
     ax.set_xlim(np.min(X)- 1, np.max(X)+ 1)
         
 
-def curve(ax, X, means, covs, mix_prob, color, label):
+def curve(ax, X, means, covs, mix_prob, color, label, ls= '-'):
     
     '''
         Function that plots pdf of gaussian mixture.
@@ -53,7 +53,7 @@ def curve(ax, X, means, covs, mix_prob, color, label):
         
     prob= (prob* mix_prob).sum(axis= 1)
     
-    ax.plot(X_range, prob, c= color, linewidth= 1.5, label= label)
+    ax.plot(X_range, prob, c= color, linewidth= 1.5, label= label, ls= ls)
     
 
 def get_figure(ax, X, means, covs, mix_prob, result, title):
@@ -73,42 +73,9 @@ def get_figure(ax, X, means, covs, mix_prob, result, title):
 
     ax.set_title(title)
 
-    curve(ax, X, means, covs, mix_prob, 'b', label= 'Real Model')
+    curve(ax, X, means, covs, mix_prob, 'b', label= 'Real Model', ls= ':')
     curve(ax, X, result.means_, np.sqrt(result.covs_), result.mix_prob_, \
           'tab:red', label= 'Estimate Model')
     
     ax.legend(loc= 'upper right')
         
-        
-def objective_function_plot(ax, results, color):
-    
-    '''
-        Function that plots objective function at each step.
-        
-    Args:
-        ax: matplotlib.axes.Axes
-        results: list of class for recording iteration results in robustEM.rEM
-    '''
-    
-    x= np.arange(len(results))
-    obj= [result.objective_function_ for result in results]
-    
-    ax.plot(x, obj, c= color, linewidth= 1.5)
-    ax.set_xlabel('iteration')
-    ax.set_title('Objective Function per Iteration')
-    
-    
-def time_cost_plot(ax, df, title):
-    
-    '''
-        Function that plots computation time cost at each step.
-        
-    Args:
-        ax: matplotlib.axes.Axes
-        df: pandas DataFrame
-    '''
-    
-    ax.plot(np.arange(df.shape[0])[1:], df['time'][1:], 'tab:red')
-    ax.set_xlabel('Iteration')
-    ax.set_ylabel('Time(sec)')
-    ax.set_title(title, fontsize= 10)

@@ -132,7 +132,7 @@ class robustEM():
         
         '''
             Function for self.initialize_covmat() that uses np.apply_along_axis().
-            This function is refered term 27 and 28 in the paper.
+            This function is refered term 27 in the paper.
             
         Args:
             d_k: numpy 1d array
@@ -278,7 +278,7 @@ class robustEM():
         
         '''
             Covariance matrix update step.
-            This function is refered term 26 in the paper.
+            This function is refered term 26 and 28 in the paper.
         '''
         
         cov_list= []

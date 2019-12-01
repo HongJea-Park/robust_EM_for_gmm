@@ -27,7 +27,7 @@ def scatter_sample(ax, X, title):
     ax.set_ylim(np.min(X[:, 1])- 2, np.max(X[:, 1])+ 2)
                   
         
-def make_ellipses(ax, mean, cov, edgecolor, n_std):
+def make_ellipses(ax, mean, cov, edgecolor, m_color, ls, n_std):
     
     '''
         Plot ellipses with mean vector and covariance matrix information.
@@ -45,7 +45,7 @@ def make_ellipses(ax, mean, cov, edgecolor, n_std):
     ell_radius_y= np.sqrt(1- pearson)
     
     ellipse= mpl.patches.Ellipse((0, 0), ell_radius_x* 2, ell_radius_y* 2, facecolor= 'none',
-                                 edgecolor= edgecolor, lw= 1)
+                                 edgecolor= edgecolor, lw= 1, ls= ls)
     
     scale_x= np.sqrt(cov[0, 0])* n_std
     scale_y= np.sqrt(cov[1, 1])* n_std
@@ -57,10 +57,10 @@ def make_ellipses(ax, mean, cov, edgecolor, n_std):
     ax.add_artist(ellipse)
     ax.set_aspect('equal', 'datalim')
     
-    ax.scatter(mean[0], mean[1], c= 'black', marker= '*')
+    ax.scatter(mean[0], mean[1], c= m_color, marker= '*')
     
     
-def get_figure(ax, means, covs, edgecolor, n_std= 3):
+def get_figure(ax, means, covs, edgecolor, m_color, ls= '-', n_std= 3):
     
     '''
         Function for convenient visualization.
@@ -75,6 +75,6 @@ def get_figure(ax, means, covs, edgecolor, n_std= 3):
     '''
             
     for mean, cov in zip(means, covs):
-        make_ellipses(ax, mean, cov, edgecolor, n_std)
+        make_ellipses(ax, mean, cov, edgecolor, m_color, ls, n_std)
         
     
