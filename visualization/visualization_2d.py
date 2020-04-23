@@ -23,8 +23,8 @@ def scatter_sample(ax, X, title):
     
     ax.set_title(title, fontsize= 10) 
     ax.scatter(X[:, 0], X[:, 1], marker= '.', c= 'g', s= 10)
-    ax.set_xlim(np.min(X[:, 0])- 2, np.max(X[:, 0])+ 2)
-    ax.set_ylim(np.min(X[:, 1])- 2, np.max(X[:, 1])+ 2)
+    ax.set_xlim(np.min(X[:, 0]) - 2, np.max(X[:, 0]) + 2)
+    ax.set_ylim(np.min(X[:, 1]) - 2, np.max(X[:, 1]) + 2)
                   
         
 def make_ellipses(ax, mean, cov, edgecolor, m_color, ls, n_std):
@@ -41,16 +41,20 @@ def make_ellipses(ax, mean, cov, edgecolor, m_color, ls, n_std):
     '''
     
     pearson = cov[0, 1]/ np.sqrt(cov[0, 0]* cov[1, 1])
-    ell_radius_x= np.sqrt(1+ pearson)
-    ell_radius_y= np.sqrt(1- pearson)
+    ell_radius_x = np.sqrt(1+ pearson)
+    ell_radius_y = np.sqrt(1- pearson)
     
-    ellipse= mpl.patches.Ellipse((0, 0), ell_radius_x* 2, ell_radius_y* 2, facecolor= 'none',
-                                 edgecolor= edgecolor, lw= 1, ls= ls)
+    ellipse = mpl.patches.Ellipse((0, 0), 
+                                  ell_radius_x * 2, 
+                                  ell_radius_y * 2, 
+                                  facecolor= 'none',
+                                  edgecolor= edgecolor, lw= 1, ls= ls)
     
-    scale_x= np.sqrt(cov[0, 0])* n_std
-    scale_y= np.sqrt(cov[1, 1])* n_std
+    scale_x= np.sqrt(cov[0, 0]) * n_std
+    scale_y= np.sqrt(cov[1, 1]) * n_std
     
-    transf= transforms.Affine2D().rotate_deg(45).scale(scale_x, scale_y).translate(mean[0], mean[1])
+    transf= transforms.Affine2D().rotate_deg(45).scale(scale_x, scale_y)\
+        .translate(mean[0], mean[1])
     
     ellipse.set_transform(transf+ ax.transData)
     ax.add_patch(ellipse)
