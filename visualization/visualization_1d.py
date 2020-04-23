@@ -22,7 +22,8 @@ def histogram(ax, X, title):
 
     
     ax.set_title(title)
-    ax.hist(X, bins= int(X.shape[0]/ 50), color= 'g', histtype= u'barstacked', density= False)
+    ax.hist(X, bins= int(X.shape[0]/ 50), color= 'g', 
+            histtype= u'barstacked', density= False)
     ax.set_xlim(np.min(X)- 1, np.max(X)+ 1)
         
 
@@ -41,17 +42,17 @@ def curve(ax, X, means, covs, mix_prob, color, label, ls= '-'):
         label: string
     '''
         
-    X_range= np.linspace(X.min()- 1, X.max()+ 1, 200).reshape(-1, 1)
+    X_range = np.linspace(X.min()- 1, X.max()+ 1, 200).reshape(-1, 1)
     
-    c= len(means)
+    c = len(means)
     
-    prob= np.zeros((X_range.shape[0], c))
+    prob = np.zeros((X_range.shape[0], c))
     
     for i in range(c):
         
-        prob[:, i]= norm(means[i], covs[i]).pdf(X_range).flatten()
+        prob[:, i] = norm(means[i], covs[i]).pdf(X_range).flatten()
         
-    prob= (prob* mix_prob).sum(axis= 1)
+    prob = (prob* mix_prob).sum(axis= 1)
     
     ax.plot(X_range, prob, c= color, linewidth= 1.5, label= label, ls= ls)
     

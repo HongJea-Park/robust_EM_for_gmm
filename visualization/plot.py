@@ -18,8 +18,8 @@ def objective_function_plot(ax, results, color):
         results: list of class for recording iteration results in robustEM.rEM
     '''
     
-    x= np.arange(len(results))
-    obj= [result.objective_function_ for result in results]
+    x = np.arange(len(results))
+    obj = [result.objective_function_ for result in results]
     
     ax.plot(x, obj, c= color, linewidth= 1.5)
     ax.set_xlabel('iteration')
