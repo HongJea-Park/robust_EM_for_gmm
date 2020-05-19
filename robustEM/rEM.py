@@ -58,18 +58,14 @@ class robustEM():
             
         '''
         
-        if X.ndim == 1: self.origin_X_ = X.reshape(-1, 1)
-        else: self.origin_X_ = X
-
-        self.remain_X_, self.counts_ = np.unique(
-            self.origin_X_, axis=0, return_counts=True)
+        if X.ndim == 1: self.X_ = X.reshape(-1, 1)
+        else: self.X_ = X
         
-        self.dim_ = self.remain_X_.shape[1]
-        self.remain_n_ = self.remain_X_.shape[0]
-        self.origin_n_ = self.origin_X_.shape[0]
-        self.c_ = self.remain_n_
-        self.pi_ = self.counts_ / self.origin_n_
-        self.means_ = self.remain_X_.copy()
+        self.dim_ = self.X_.shape[1]
+        self.n_ = self.X_.shape[0]
+        self.c_ = self.n_
+        self.pi_ = np.ones(self.c_) / self.c_
+        self.means_ = self.X_.copy()
         self.cov_idx_ = int(np.ceil(np.sqrt(self.c_)))
         self.beta_ = 1
         self.beta_update_ = True
@@ -77,7 +73,7 @@ class robustEM():
         self.entropy_ = (self.pi_*np.log(self.pi_)).sum()
 
         self.initialize_covmat()
-        self.z_ = self.predict_proba(self.origin_X_)
+        self.z_ = self.predict_proba(self.X_)
 
         self.before_time_ = time()        
         self.get_iter_info()
@@ -93,27 +89,24 @@ class robustEM():
             self.pi_ = self.new_pi_
             self.new_c_ = self.update_c()
             
-            if self.new_c_ == self.c_: self.num_update_c_ += 1
+            if self.new_c_ == self.c_: 
+                self.num_update_c_ += 1
             
             if self.t_ >= 60 and self.num_update_c_ == 60: 
-                
                 self.beta_ = 0
                 self.beta_update_ = False
                 
             self.c_ = self.new_c_
             self.update_cov()
-            self.z_ = self.predict_proba(self.origin_X_)
+            self.z_ = self.predict_proba(self.X_)
             self.new_means_ = self.update_means()
-            
+                        
             if self.check_convergence() < self.eps_: 
-                
-                self.means_ = self.new_means_
                 break
             
-            self.means_ = self.new_means_
+            self.remove_repeated_components()
             
             self.get_iter_info()
-            
             self.t_ += 1
             
         self.get_iter_info()
@@ -125,8 +118,8 @@ class robustEM():
             Covariance matrix initialize function.
         '''
         
-        D_mat = np.sqrt(np.sum(
-            (self.remain_X_[None, :] - self.remain_X_[:, None]) ** 2, -1))
+        D_mat = np.sqrt(
+            np.sum((self.X_[None, :] - self.X_[:, None]) ** 2, -1))
         
         self.covs_ = np.apply_along_axis(
             func1d= lambda x: self._initialize_covmat_1d(x),
@@ -166,7 +159,7 @@ class robustEM():
             X: numpy array
         '''
         
-        likelihood = np.zeros((X.shape[0], self.c_))
+        likelihood = np.zeros((self.n_, self.c_))
         
         for i in range(self.c_):
             
@@ -176,7 +169,7 @@ class robustEM():
                                        cov= self.covs_[i])
             likelihood[:, i] = dist.pdf(X)
         
-        numerator = likelihood * self.pi_
+        numerator = likelihood * self.pi_ + self.smoothing_parameter_
         denominator = numerator.sum(axis= 1)[:, np.newaxis]
         z = numerator / denominator
         
@@ -207,7 +200,7 @@ class robustEM():
         means_list = []
         for i in range(self.c_):
             means_list.append(
-                (self.origin_X_* self.z_[:, i].reshape(-1, 1)).sum(axis= 0) /\
+                (self.X_* self.z_[:, i].reshape(-1, 1)).sum(axis= 0) / \
                     self.z_[:, i].sum())
             
         return np.array(means_list)
@@ -220,7 +213,7 @@ class robustEM():
             This function is refered term 13 in the paper.
         '''
         
-        self.pi_EM_ = self.z_.sum(axis= 0) / self.origin_n_
+        self.pi_EM_ = self.z_.sum(axis= 0) / self.n_
         self.entropy_ = (self.pi_*np.log(self.pi_)).sum()
         
         return self.pi_EM_ + self.beta_ * self.pi_ * \
@@ -252,8 +245,7 @@ class robustEM():
         eta = np.min([1, 0.5 ** (power)])
         
         left_term = np.exp(
-            -eta * self.remain_n_ * np.abs(self.new_pi_ - self.pi_)).sum() /\
-            self.c_
+            -eta * self.n_ * np.abs(self.new_pi_ - self.pi_)).sum() / self.c_
         
         return left_term
     
@@ -280,7 +272,7 @@ class robustEM():
             This function is refered term 14, 15 and 16 in the paper.
         '''
         
-        idx_bool = self.pi_ >= 1 / self.origin_n_
+        idx_bool = self.pi_ >= 1 / self.n_
         new_c = idx_bool.sum()
         
         pi = self.pi_[idx_bool]
@@ -305,7 +297,7 @@ class robustEM():
         
         for i in range(self.new_c_):
             
-            new_cov = np.cov((self.origin_X_- self.means_[i, :]).T, 
+            new_cov = np.cov((self.X_- self.means_[i, :]).T, 
                              aweights= (self.z_[:, i]/ self.z_[:, i].sum()))
             new_cov = (1- self.gamma_)* new_cov- self.gamma_* self.Q_
             cov_list.append(new_cov)
@@ -319,8 +311,11 @@ class robustEM():
             Function for checking whether algorithm converge or not.
         '''
         
-        return np.max(
+        check = np.max(
             np.sqrt(np.sum((self.new_means_- self.means_)** 2, axis= 1)))
+        self.means_ = self.new_means_
+
+        return check
     
     
     def check_positive_semidefinite(self, cov):
@@ -397,25 +392,48 @@ class robustEM():
             with iteration information.
         '''
         
-        likelihood = np.zeros((self.origin_n_, self.c_))
+        likelihood = np.zeros((self.n_, self.c_))
                         
         for i in range(self.c_):
             
             likelihood[:, i] = multivariate_normal(
-                self.means_[i], self.covs_[i]).pdf(self.origin_X_)
+                self.means_[i], self.covs_[i]).pdf(self.X_)
             
         likelihood = likelihood * self.pi_
-        resposibility = self.predict_proba(self.origin_X_)
+        resposibility = self.predict_proba(self.X_)
         
         log_likelihood = \
             np.sum(np.log(
                 likelihood + self.smoothing_parameter_) * resposibility) \
-            + self.beta_ * self.entropy_ * self.origin_n_
+            + self.beta_ * self.entropy_ * self.n_
         
         return log_likelihood
     
-
+    
+    def remove_repeated_components(self):
         
+        '''
+            To remove repeated components during fitting for preventing the 
+            cases that contain duplicated data.
+        '''
+        
+        c_params = np.concatenate(
+            [self.means_, 
+             self.covs_.reshape(self.c_,-1), 
+             self.pi_.reshape(-1,1)], 
+            axis= 1)
+        
+        _, idx, counts = np.unique(
+            c_params, axis= 0, return_index=True, return_counts= True)
+        
+        self.means_ = self.means_[idx]
+        self.covs_ = self.covs_[idx]
+        self.pi_ = self.pi_[idx]*counts
+        self.c_ = self.pi_.shape[0]
+        
+        self.z_ = self.z_[:,idx]*counts
+
+    
 if __name__== '__main__':
         
     pass
