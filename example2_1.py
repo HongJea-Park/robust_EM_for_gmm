@@ -38,7 +38,6 @@ vs2.get_figure(ax, means_real, covs_real, 'b', 'b')
 
 plt.savefig('../plot/example2_1_1.png', dpi=300)
 
-
 # Standard EM with initial values
 init_idx = np.random.choice(np.arange(X.shape[0]), 3)
 means_init = X[init_idx, :]
@@ -47,13 +46,11 @@ gmm_random.fit(X)
 means_sklearn_random = gmm_random.means_
 covs_sklearn_random = gmm_random.covariances_
 
-
 # Standard EM with Kmeans initial values
 gmm_kmeans = GaussianMixture(n_components=3)
 gmm_kmeans.fit(X)
 means_sklearn_Kmeans = gmm_kmeans.means_
 covs_sklearn_Kmeans = gmm_kmeans.covariances_
-
 
 # visualization with Real, standard EM with initial values,
 # standard EM with Kmeans initial values
@@ -109,4 +106,4 @@ for ax, idx in zip(ax_list, idx_):
               loc='lower left',
               fontsize=7)
 
-plt.savefig('../plot/example2_1_4.png', dpi=ㄴ300)
+plt.savefig('../plot/example2_1_4.png', dpi=300)

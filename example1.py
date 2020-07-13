@@ -25,11 +25,9 @@ ex1 = generator_multivariate_normal(means=means,
 
 X = ex1.get_sample(800)
 
-
 # Real
 means_real = ex1.means_
 covs_real = ex1.covs_
-
 
 # Standard EM with initial values
 init_idx = np.random.choice(np.arange(X.shape[0]), 2)
@@ -51,14 +49,12 @@ vs2.get_figure(ax2, means_sklearn, covs_sklearn, 'tab:red', 'tab:red')
 
 plt.savefig('../plot/example1_1.png', dpi=300)
 
-
 # robust EM
 rem = rEM.robustEM()
 rem.fit(X)
 
 results = rem.result_list_
 record = rem.save_record()
-
 
 # visualization
 fig = plt.figure(figsize=(12, 9))

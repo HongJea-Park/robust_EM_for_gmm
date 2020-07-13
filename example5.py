@@ -101,7 +101,7 @@ ax1, ax2, ax3, ax4, ax5, ax6 = (plt.subplot(231), plt.subplot(232),
 # vs2.scatter_sample(ax1, X, 'Real Data and Real Gaussian Distribution')
 
 ax_list = [ax1, ax2, ax3, ax4, ax5]
-idx = [0, 1, 5, 20, -1]
+idx_ = [0, 1, 5, 20, -1]
 
 for ax, idx in zip(ax_list, idx_):
     result = results[idx]

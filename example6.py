@@ -48,14 +48,12 @@ covs = [[[.1, .0], [.0, .1]],
         [[.1, .0], [.0, .1]],
         [[.1, .0], [.0, .1]]]
 
-
 mix_prob = [1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16,
             1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16]
 
 ex6 = generator_multivariate_normal(means=means,
                                     covs=covs,
                                     mix_prob=mix_prob)
-
 X = ex6.get_sample(800)
 
 # Real

@@ -45,7 +45,6 @@ gmm_random.fit(X)
 means_sklearn_random = gmm_random.means_
 covs_sklearn_random = gmm_random.covariances_
 
-
 # Standard EM with Kmeans initial values
 gmm_kmeans = GaussianMixture(n_components=4)
 gmm_kmeans.fit(X)
@@ -106,19 +105,19 @@ for ax, idx in zip(ax_list, idx_):
 plt.savefig('../plot/example3_3.png', dpi=300)
 
 # Experiments by generating 100 data sets with same parameter
-c_list = []
+# c_list = []
 
-for _ in range(100):
+# for _ in range(100):
 
-    ex1 = generator_multivariate_normal(means=means,
-                                        covs=covs,
-                                        mix_prob=mix_prob)
+#     ex1 = generator_multivariate_normal(means=means,
+#                                         covs=covs,
+#                                         mix_prob=mix_prob)
 
-    X = ex1.get_sample(1000)
+#     X = ex1.get_sample(1000)
 
-    rem = rEM.robustEM()
-    rem.fit(X)
+#     rem = rEM.robustEM()
+#     rem.fit(X)
 
-    c_list.append(rem.c_ == 4)
+#     c_list.append(rem.c_ == 4)
 
 # the number of correct robustEM: 62
