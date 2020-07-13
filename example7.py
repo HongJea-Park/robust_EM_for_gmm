@@ -7,21 +7,22 @@ Created on Wed Nov 27 21:24:27 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
-#Although Axes3D is not used directly, it is imported because it is needed for 3d projection.
+# Although Axes3D is not used directly,
+# it is imported because it is needed for 3d projection.
 from mpl_toolkits.mplot3d import Axes3D
 
 from generator.sample_generator import generator_multivariate_normal
 from robustEM import rEM
 
 
-means = [[-5, -10, 0], 
-         [0, -10, 0], 
+means = [[-5, -10, 0],
+         [0, -10, 0],
          [5, -10, 0],
-         [-5, -0, 4], 
-         [0, -0, 4], 
+         [-5, -0, 4],
+         [0, -0, 4],
          [5, -0, 4],
-         [-5, 10, 8], 
-         [0, 10, 8], 
+         [-5, 10, 8],
+         [0, 10, 8],
          [5, 10, 8]]
 
 covs = [[[.5, 0, 0], [0, 2, 0], [0, 0, 1]],
@@ -42,18 +43,18 @@ X = ex7.get_sample(1600)
 # robustEM
 rem = rEM.robustEM()
 rem.fit(X)
-record = rem.save_record(save_option= True, filename= 'example7')
+record = rem.save_record(save_option=True, filename='example7')
 
 c_pred = rem.predict(X)
 c_list = np.unique(c_pred)
 
 # visualization
-fig = plt.figure(figsize= (12, 6))
-ax1 = fig.add_subplot(121, projection= '3d')
-ax2 = fig.add_subplot(122, projection= '3d')
-ax1.scatter(X[:, 0], X[:, 1], X[:, 2], color= 'g')
-ax2.scatter(X[:, 0], X[:, 1], X[:, 2], c= c_pred)
+fig = plt.figure(figsize=(12, 6))
+ax1 = fig.add_subplot(121, projection='3d')
+ax2 = fig.add_subplot(122, projection='3d')
+ax1.scatter(X[:, 0], X[:, 1], X[:, 2], color='g')
+ax2.scatter(X[:, 0], X[:, 1], X[:, 2], c=c_pred)
 ax1.set_title('The 3-dimensional data set with nine clusters')
 ax2.set_title('Clustering results by the robust EM algorithm')
-plt.savefig('../plot/example7.png', dpi= 300)
+plt.savefig('../plot/example7.png', dpi=300)
 plt.show()
