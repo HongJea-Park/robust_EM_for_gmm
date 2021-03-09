@@ -1,14 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Spyder Editor
-
-This is a temporary script file.
-"""
-
 import numpy as np
 
 
-class generator_multivariate_normal():
+class Generator_Multivariate_Normal():
 
     '''
         Class for generating n-dimensions sample data set with multivariate
@@ -58,7 +51,7 @@ class generator_multivariate_normal():
         return X
 
 
-class generator_univariate_normal():
+class Generator_Univariate_Normal():
 
     '''
         Class for generating one-dimension sample data set with univariate
@@ -104,8 +97,3 @@ class generator_univariate_normal():
             X = np.append(X, X_n)
 
         return X
-
-
-if __name__ == '__main__':
-
-    pass

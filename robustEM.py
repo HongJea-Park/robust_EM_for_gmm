@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Nov 15 15:46:39 2019
-
-@author: hongj
-"""
-
 import numpy as np
 from scipy.stats import multivariate_normal
 from time import time
@@ -20,7 +13,7 @@ class Result(object):
     pass
 
 
-class robustEM():
+class RobustEM():
 
     '''
         Class for robust EM clustering algorithm.
@@ -416,8 +409,3 @@ class robustEM():
         self.c_ = self.pi_.shape[0]
 
         self.z_ = self.z_[:, idx]*counts
-
-
-if __name__ == '__main__':
-
-    pass

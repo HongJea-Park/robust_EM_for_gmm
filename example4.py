@@ -1,14 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Nov 25 04:17:25 2019
-
-@author: hongj
-"""
-
 import matplotlib.pyplot as plt
 
-from generator.sample_generator import generator_univariate_normal
-from robustEM import rEM
+import robustEM
+from data.generator import Generator_Univariate_Normal
 from visualization import visualization_1d as vs1
 from visualization import plot
 
@@ -18,7 +11,7 @@ means = [-11, 0, 13]
 stds = [2, 4, 3]
 mix_prob = [1/3, 1/3, 1/3]
 
-ex4 = generator_univariate_normal(means=means,
+ex4 = Generator_Univariate_Normal(means=means,
                                   stds=stds,
                                   mix_prob=mix_prob)
 
@@ -29,7 +22,7 @@ means_real = ex4.means_
 stds_real = ex4.stds_
 
 # robustEM
-rem = rEM.robustEM()
+rem = robustEM.RobustEM()
 rem.fit(X)
 
 results = rem.result_list_

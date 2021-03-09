@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Nov 25 16:17:50 2019
-
-@author: hongj
-"""
-
 import numpy as np
 from scipy.stats import norm
 

@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 14 20:37:30 2019
-
-@author: hongj
-"""
-
 import matplotlib as mpl
 import numpy as np
 import matplotlib.transforms as transforms

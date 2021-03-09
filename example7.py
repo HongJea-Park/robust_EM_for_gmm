@@ -1,18 +1,11 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 27 21:24:27 2019
-
-@author: hongj
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 # Although Axes3D is not used directly,
 # it is imported because it is needed for 3d projection.
-from mpl_toolkits.mplot3d import Axes3D
 
-from generator.sample_generator import generator_multivariate_normal
-from robustEM import rEM
+import robustEM
+from data.generator import Generator_Multivariate_Normal
 
 
 means = [[-5, -10, 0],
@@ -37,11 +30,11 @@ covs = [[[.5, 0, 0], [0, 2, 0], [0, 0, 1]],
 
 mix_prob = [1/16, 2/16, 1/16, 2/16, 4/16, 2/16, 1/16, 2/16, 1/16]
 
-ex7 = generator_multivariate_normal(means, covs, mix_prob)
+ex7 = Generator_Multivariate_Normal(means, covs, mix_prob)
 X = ex7.get_sample(1600)
 
 # robustEM
-rem = rEM.robustEM()
+rem = robustEM.RobustEM()
 rem.fit(X)
 record = rem.save_record(save_option=True, filename='example7')
 

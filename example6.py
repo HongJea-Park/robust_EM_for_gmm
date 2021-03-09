@@ -1,16 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Nov 26 00:12:10 2019
-
-@author: hongj
-"""
-
 import matplotlib.pyplot as plt
 from sklearn.mixture import GaussianMixture
 import numpy as np
 
-from generator.sample_generator import generator_multivariate_normal
-from robustEM import rEM
+import robustEM
+from data.generator import Generator_Multivariate_Normal
 from visualization import visualization_2d as vs2
 
 
@@ -51,7 +44,7 @@ covs = [[[.1, .0], [.0, .1]],
 mix_prob = [1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16,
             1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16]
 
-ex6 = generator_multivariate_normal(means=means,
+ex6 = Generator_Multivariate_Normal(means=means,
                                     covs=covs,
                                     mix_prob=mix_prob)
 X = ex6.get_sample(800)
@@ -105,7 +98,7 @@ for i in range(2):
 plt.savefig('../plot/example6_2.png', dpi=300)
 
 # robustEM
-rem = rEM.robustEM()
+rem = robustEM.RobustEM()
 rem.fit(X)
 
 results = rem.result_list_
