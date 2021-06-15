@@ -1,6 +1,9 @@
-
+.eggs
+.venv
+.vscode
+__pycache__
+robustGMM.egg-info
 *.ini
-*.png
 *.pyc
 *.zip
 *.csv

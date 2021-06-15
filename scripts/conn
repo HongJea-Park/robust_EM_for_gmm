@@ -1,0 +1,7 @@
+docker run --rm -it \
+    --name robustgmm \
+    -v $(pwd):/app \
+    -p 8888:8888 \
+    robustgmm:1.0.0 \
+    /bin/bash
+    

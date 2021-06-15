@@ -1,0 +1,1 @@
+docker build . -t robustgmm:1.0.0
