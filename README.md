@@ -28,7 +28,6 @@ For more detail to use, see the example below or [paper_example.py]
 [paper_example.py]: ./test/paper_example.py
 
 <br>
----
 
 ## Install
 
@@ -45,7 +44,6 @@ For more detail to use, see the example below or [paper_example.py]
     ```
 
 <br>
----
 
 ## Example
 
@@ -74,6 +72,8 @@ X = generator.get_sample(800)
 rgmm = RobustGMM()
 rgmm.fit(X)
 ```
+
+<br>
 
 ## Figures for each examples in paper
 
