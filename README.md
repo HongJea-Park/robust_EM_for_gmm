@@ -7,11 +7,11 @@ Python implementation of Robust EM Clustering for Gaussian Mixture Models[1].
 
 <br>
 
-- `robustGMM.robustGMM` 
+- `robustgmm.robustgmm` 
 
     Scikit-learn API style for Robust GMM
     
-- `robustGMM.generator` 
+- `robustgmm.generator` 
 
     Generator for synthetic data from mixture of gaussian.
 
@@ -34,7 +34,7 @@ For more detail to use, see the example below or [paper_example.py]
 1. Install from PyPI
 
     ```bash
-    pip install robustGMM
+    pip install robustgmm
     ```
     
 2. Install from Github
@@ -53,8 +53,8 @@ All examples are conducted to compare with the experimental results of the paper
 # For more detail, refer ./test/paper_example.py
 import numpy as np
 
-from robustGMM import RobustGMM
-from robustGMM import Generator_Multivariate_Normal
+from robustgmm import RobustGMM
+from robustgmm import Generator_Multivariate_Normal
 
 
 # Generate data from 2 multivariate normal distribution with fixed random seed

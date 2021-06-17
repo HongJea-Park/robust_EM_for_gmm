@@ -1,2 +1,2 @@
-from robustGMM.robustGMM import *
-from robustGMM.generator import *
+from robustgmm.robustgmm import *
+from robustgmm.generator import *

@@ -44,35 +44,35 @@ class RobustGMM:
         self.beta_update = True
         self.t = 0
         self.entropy = (self.pi*np.log(self.pi)).sum()
-        self.__initialize_covmat()
+        self._initialize_covmat()
         self.z = self.predict_proba(self.X)
         self.before_time = time()
-        self.__get_iter_info()
+        self._get_iter_info()
         self.t += 1
         self.num_update_c = 0
 
         # robust EM algorithm
         while True:
-            self.means = self.__update_means()
-            self.new_pi = self.__update_pi()
-            self.__update_beta()
+            self.means = self._update_means()
+            self.new_pi = self._update_pi()
+            self._update_beta()
             self.pi = self.new_pi
-            self.new_c = self.__update_c()
+            self.new_c = self._update_c()
             if self.new_c == self.c:
                 self.num_update_c += 1
             if self.t >= 60 and self.num_update_c == 60:
                 self.beta = 0
                 self.beta_update = False
             self.c = self.new_c
-            self.__update_cov()
+            self._update_cov()
             self.z = self.predict_proba(self.X)
-            self.new_means = self.__update_means()
-            if self.__check_convergence() < self.eps:
+            self.new_means = self._update_means()
+            if self._check_convergence() < self.eps:
                 break
-            self.__remove_repeated_components()
-            self.__get_iter_info()
+            self._remove_repeated_components()
+            self._get_iter_info()
             self.t += 1
-        self.__get_iter_info()
+        self._get_iter_info()
 
     def predict_proba(self, X):
         """
@@ -83,7 +83,7 @@ class RobustGMM:
         """
         likelihood = np.zeros((self.n, self.c))
         for i in range(self.c):
-            self.covs[i] = self.__check_positive_semidefinite(self.covs[i])
+            self.covs[i] = self._check_positive_semidefinite(self.covs[i])
             dist = multivariate_normal(mean=self.means[i], cov=self.covs[i])
             likelihood[:, i] = dist.pdf(X)
         numerator = likelihood * self.pi + self.__smoothing_parameter
@@ -110,21 +110,21 @@ class RobustGMM:
         """
         return self.__training_info
 
-    def __initialize_covmat(self):
+    def _initialize_covmat(self):
         """
         Covariance matrix initialize function.
         """
         D_mat = np.sqrt(np.sum((self.X[None, :]-self.X[:, None])**2, -1))
         self.covs = np.apply_along_axis(
-            func1d=lambda x: self.__initialize_covmat_1d(x),
+            func1d=lambda x: self._initialize_covmat_1d(x),
             axis=1, arr=D_mat)
         D_mat_reshape = D_mat.reshape(-1, 1)
         d_min = D_mat_reshape[D_mat_reshape > 0].min()
         self.Q = d_min*np.identity(self.dim)
 
-    def __initialize_covmat_1d(self, d_k):
+    def _initialize_covmat_1d(self, d_k):
         """
-        self.__initialize_covmat() that uses np.apply_along_axis().
+        self._initialize_covmat() that uses np.apply_along_axis().
         This function is refered term 27 in the paper.
 
         Args:
@@ -135,7 +135,7 @@ class RobustGMM:
         d_k = d_k[d_k != 0]
         return ((d_k[self.__cov_idx] ** 2) * np.identity(self.dim))
 
-    def __update_means(self):
+    def _update_means(self):
         """
         Mean vectors update step.
         This function is refered term 25 in the paper.
@@ -146,7 +146,7 @@ class RobustGMM:
             means_list.append((self.X*z.reshape(-1, 1)).sum(axis=0) / z.sum())
         return np.array(means_list)
 
-    def __update_pi(self):
+    def _update_pi(self):
         """
         Mixing proportions update step.
         This function is refered term 13 in the paper.
@@ -155,16 +155,16 @@ class RobustGMM:
         self.entropy = (self.pi*np.log(self.pi)).sum()
         return self.pi_EM_ + self.beta*self.pi*(np.log(self.pi)-self.entropy)
 
-    def __update_beta(self):
+    def _update_beta(self):
         """
         Beta update step.
         This function is refered term 24 in the paper.
         """
         if self.beta_update:
-            self.beta = np.min([self.__left_term_of_beta(),
-                                self.__right_term_of_beta()])
+            self.beta = np.min([self._left_term_of_beta(),
+                                self._right_term_of_beta()])
 
-    def __left_term_of_beta(self):
+    def _left_term_of_beta(self):
         """
         Left term of beta update step.
         This function is refered term 22 in the paper.
@@ -173,7 +173,7 @@ class RobustGMM:
         eta = np.min([1, 0.5 ** (power)])
         return np.exp(-eta*self.n*np.abs(self.new_pi-self.pi)).sum() / self.c
 
-    def __right_term_of_beta(self):
+    def _right_term_of_beta(self):
         """
         Right term of beta update step.
         This function is refered term 23 in the paper.
@@ -182,7 +182,7 @@ class RobustGMM:
         pi_old = np.max(self.pi)
         return (1 - pi_EM) / (-pi_old * self.entropy)
 
-    def __update_c(self):
+    def _update_c(self):
         """
         Update the number of components.
         This function is refered term 14, 15 and 16 in the paper.
@@ -196,7 +196,7 @@ class RobustGMM:
         self.means = self.means[idx_bool, :]
         return new_c
 
-    def __update_cov(self):
+    def _update_cov(self):
         """
         Covariance matrix update step.
         This function is refered term 26 and 28 in the paper.
@@ -209,7 +209,7 @@ class RobustGMM:
             cov_list.append(new_cov)
         self.covs = np.array(cov_list)
 
-    def __check_convergence(self):
+    def _check_convergence(self):
         """
         Check whether algorithm converge or not.
         """
@@ -217,7 +217,7 @@ class RobustGMM:
         self.means = self.new_means
         return check
 
-    def __check_positive_semidefinite(self, cov):
+    def _check_positive_semidefinite(self, cov):
         """
         Prevent error that covariance matrix is not positive semi definite.
         """
@@ -226,7 +226,7 @@ class RobustGMM:
             cov -= 10 * min_eig * np.eye(*cov.shape)
         return cov
 
-    def __get_iter_info(self):
+    def _get_iter_info(self):
         """
         Record useful information in each step
         for visualization and objective function.
@@ -240,11 +240,11 @@ class RobustGMM:
         result['mix_prob'] = self.pi
         result['beta'] = self.beta
         result['entropy'] = self.entropy
-        result['objective_function'] = self.__objective_function()
+        result['objective_function'] = self._objective_function()
         self.before_time = time()
         self.__training_info.append(result)
 
-    def __objective_function(self):
+    def _objective_function(self):
 
         """
         Calculate objective function(negative log likelihood).
@@ -261,7 +261,7 @@ class RobustGMM:
             + self.beta * self.entropy * self.n
         return log_likelihood
 
-    def __remove_repeated_components(self):
+    def _remove_repeated_components(self):
         """
         To remove repeated components during fitting for preventing the
         cases that contain duplicated data.

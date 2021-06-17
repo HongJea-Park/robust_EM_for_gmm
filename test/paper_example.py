@@ -8,14 +8,14 @@ from mpl_toolkits.mplot3d import Axes3D
 # Although Axes3D is not used directly,
 # it is imported because it is needed for 3d projection.
 
-from robustGMM import RobustGMM
-from robustGMM import Generator_Multivariate_Normal
-from robustGMM import Generator_Univariate_Normal
+from robustgmm import RobustGMM
+from robustgmm import Generator_Multivariate_Normal
+from robustgmm import Generator_Univariate_Normal
 
 
 # All functions are for visualization.
 def make_ellipses(ax, means, covs, edgecolor, m_color, ls='-', n_std=3):
-    def __make_ellipses(mean, cov):
+    def _make_ellipses(mean, cov):
         pearson = cov[0, 1] / np.sqrt(cov[0, 0] * cov[1, 1])
         ell_radius_x = np.sqrt(1 + pearson)
         ell_radius_y = np.sqrt(1 - pearson)
@@ -34,11 +34,11 @@ def make_ellipses(ax, means, covs, edgecolor, m_color, ls='-', n_std=3):
         ax.set_aspect('equal', 'datalim')
         ax.scatter(mean[0], mean[1], c=m_color, marker='*')
     for mean, cov in zip(means, covs):
-        __make_ellipses(mean, cov)
+        _make_ellipses(mean, cov)
 
 
 def make_1dplot(ax, X, means, covs, mix_prob, info, title):
-    def curve(means, covs, mix_prob, color, label, ls='-'):
+    def _curve(means, covs, mix_prob, color, label, ls='-'):
         X_range = np.linspace(X.min()-1, X.max()+1, 200).reshape(-1, 1)
         c = len(means)
         prob = np.zeros((X_range.shape[0], c))
@@ -47,9 +47,9 @@ def make_1dplot(ax, X, means, covs, mix_prob, info, title):
         prob = (prob * mix_prob).sum(axis=1)
         ax.plot(X_range, prob, c=color, linewidth=1.5, label=label, ls=ls)
     ax.set_title(title)
-    curve(means, covs, mix_prob, 'b', label='Real Model', ls=':')
-    curve(info['means'], np.sqrt(info['covs']), info['mix_prob'],
-          'tab:red', label='Estimate Model')
+    _curve(means, covs, mix_prob, 'b', label='Real Model', ls=':')
+    _curve(info['means'], np.sqrt(info['covs']), info['mix_prob'],
+           'tab:red', label='Estimate Model')
     ax.legend(loc='upper right')
 
 

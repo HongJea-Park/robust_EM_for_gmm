@@ -14,7 +14,7 @@ extras["all_extras"] = sum(extras.values(), [])
 
 setup(
     name="robustgmm",
-    version='1.0.0',
+    version='1.0.1',
     description="A robust EM clustering algorithm for Gaussian mixture models",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
