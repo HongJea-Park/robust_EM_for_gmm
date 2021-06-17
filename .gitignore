@@ -9,3 +9,5 @@ robustGMM.egg-info
 *.csv
 *.tar
 *.pyc
+build
+dist
